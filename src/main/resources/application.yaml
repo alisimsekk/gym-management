@@ -1,0 +1,23 @@
+server:
+  servlet:
+    context-path: /api/v1
+  port: 8089
+
+spring:
+  application:
+    name: gym-management
+  datasource:
+    url: jdbc:postgresql://localhost:15432/gym-management
+    username: postgres
+    password: pass
+    hikari:
+      connection-timeout: 2000 # 2 sec
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  data:
+    mongodb:
+      auto-index-creation: true
+  mongodb:
+    uri: ${SPRING_DATA_MONGODB_URI:mongodb://root:example@localhost:27017/trainer_report?authSource=admin}
