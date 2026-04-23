@@ -72,12 +72,13 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public Trainee getTraineeById(Long id) {
+    public TraineeProfileResponse getTraineeById(Long id) {
 
         log.info("Retrieving trainee with id {}", id);
 
-        return traineeRepository.findById(id)
+        Trainee trainee = traineeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(Trainee.class.getSimpleName()));
+        return traineeConverter.toTraineeProfileResponse(trainee);
     }
 
     @Override
@@ -144,6 +145,24 @@ public class TraineeServiceImpl implements TraineeService {
             trainee.getAssignedTrainers().add(trainer);
             traineeRepository.save(trainee);
         }
+    }
+
+    @Override
+    public Trainee getActiveTraineeByUsername(String username) {
+        log.info("Retrieving trainee with username {}", username);
+
+        return traineeRepository.findActiveTraineeByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException(Trainee.class.getSimpleName()));
+    }
+
+    @Override
+    public List<TraineeProfileResponse> searchTrainees(UserSearchRequest searchRequest) {
+        searchRequest.setUserType(UserType.TRAINEE);
+        List<User> users = userService.searchUsers(searchRequest);
+        return users.stream()
+                .filter(user -> user instanceof Trainee)
+                .map(user -> traineeConverter.toTraineeProfileResponse((Trainee) user))
+                .toList();
     }
 
     private Trainee checkUserIsPresentAndTrainee(Optional<User> user) {

@@ -3,12 +3,12 @@ package com.alisimsek.controller;
 import com.alisimsek.dto.request.TraineeCreatRequest;
 import com.alisimsek.dto.request.UpdateTraineeRequest;
 import com.alisimsek.dto.request.UpdateTrainerListRequest;
+import com.alisimsek.dto.request.UserSearchRequest;
 import com.alisimsek.dto.response.TraineeProfileResponse;
 import com.alisimsek.dto.response.TraineeUpdateResponse;
 import com.alisimsek.dto.response.TrainerBasicInfoDto;
 import com.alisimsek.dto.response.UserRegistrationResponse;
 import com.alisimsek.service.TraineeService;
-import com.alisimsek.service.TrainerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -32,11 +32,18 @@ public class TraineeController {
         return ResponseEntity.ok(traineeService.createTrainee(request));
     }
 
-    @Operation(summary = "Get trainee profile")
+    @Operation(summary = "Get trainee profile by username")
     @ApiResponse(responseCode = "200", description = "Trainee profile retrieved")
     @GetMapping("/{username}")
     public ResponseEntity<TraineeProfileResponse> getTraineeProfileByUsername(@PathVariable("username") String username) {
         return ResponseEntity.ok(traineeService.getTraineeProfileByUsername(username));
+    }
+
+    @Operation(summary = "Get trainee profile by ID")
+    @ApiResponse(responseCode = "200", description = "Trainee profile retrieved")
+    @GetMapping("/id/{id}")
+    public ResponseEntity<TraineeProfileResponse> getTraineeById(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(traineeService.getTraineeById(id));
     }
 
     @Operation(summary = "Update trainee profile")
@@ -71,5 +78,12 @@ public class TraineeController {
             @PathVariable(value = "username") String username,
             @Valid @RequestBody UpdateTrainerListRequest request) {
         return ResponseEntity.ok().body(traineeService.updateTrainerList(username, request));
+    }
+
+    @Operation(summary = "Search trainees")
+    @ApiResponse(responseCode = "200", description = "Trainees retrieved")
+    @PostMapping("/search")
+    public ResponseEntity<List<TraineeProfileResponse>> searchTrainees(@RequestBody UserSearchRequest searchRequest) {
+        return ResponseEntity.ok(traineeService.searchTrainees(searchRequest));
     }
 }

@@ -1,13 +1,16 @@
 package com.alisimsek.service;
 
+import com.alisimsek.dto.request.UserSearchRequest;
 import com.alisimsek.exception.ExceptionMessage;
 import com.alisimsek.exception.customException.EntityNotFoundException;
 import com.alisimsek.model.User;
 import com.alisimsek.repository.UserRepository;
+import com.alisimsek.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -49,5 +52,10 @@ public class UserServiceImpl implements UserService {
 
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException("User"));
+    }
+
+    @Override
+    public List<User> searchUsers(UserSearchRequest searchRequest) {
+        return userRepository.findAll(UserSpecification.search(searchRequest));
     }
 }

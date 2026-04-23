@@ -2,6 +2,7 @@ package com.alisimsek.controller;
 
 import com.alisimsek.dto.request.TrainerCreateRequest;
 import com.alisimsek.dto.request.UpdateTrainerRequest;
+import com.alisimsek.dto.request.UserSearchRequest;
 import com.alisimsek.dto.response.TrainerProfileResponse;
 import com.alisimsek.dto.response.TrainerUpdateResponse;
 import com.alisimsek.dto.response.UserRegistrationResponse;
@@ -12,6 +13,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/trainers")
@@ -27,11 +30,18 @@ public class TrainerController {
         return ResponseEntity.ok(trainerService.createTrainer(request));
     }
 
-    @Operation(summary = "Get trainer profile")
+    @Operation(summary = "Get trainer profile by username")
     @ApiResponse(responseCode = "200", description = "Trainer profile retrieved")
     @GetMapping("/{username}")
     public ResponseEntity<TrainerProfileResponse> getTrainerProfileByUsername(@PathVariable(value = "username") String username) {
         return ResponseEntity.ok(trainerService.getTrainerProfileByUsername(username));
+    }
+
+    @Operation(summary = "Get trainer profile by ID")
+    @ApiResponse(responseCode = "200", description = "Trainer profile retrieved")
+    @GetMapping("/id/{id}")
+    public ResponseEntity<TrainerProfileResponse> getTrainerById(@PathVariable(value = "id") Long id) {
+        return ResponseEntity.ok(trainerService.getTrainerById(id));
     }
 
     @Operation(summary = "Update trainer profile")
@@ -48,5 +58,12 @@ public class TrainerController {
 
         trainerService.changeTrainerStatus(id);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Search trainers")
+    @ApiResponse(responseCode = "200", description = "Trainers retrieved")
+    @PostMapping("/search")
+    public ResponseEntity<List<TrainerProfileResponse>> searchTrainers(@RequestBody UserSearchRequest searchRequest) {
+        return ResponseEntity.ok(trainerService.searchTrainers(searchRequest));
     }
 }

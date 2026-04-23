@@ -16,7 +16,7 @@ public interface TraineeService {
 
     TraineeUpdateResponse updateTrainee(Long id, UpdateTraineeRequest trainee);
 
-    Trainee getTraineeById(Long id);
+    TraineeProfileResponse getTraineeById(Long id);
 
     void deleteTraineeByUsername(String username);
 
@@ -27,4 +27,8 @@ public interface TraineeService {
     List<TrainerBasicInfoDto> updateTrainerList(String username, UpdateTrainerListRequest request);
 
     void addTrainerToTrainee(Trainee trainee, Trainer trainer);
+
+    Trainee getActiveTraineeByUsername(String username);
+
+    List<TraineeProfileResponse> searchTrainees(UserSearchRequest searchRequest);
 }

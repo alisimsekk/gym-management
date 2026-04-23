@@ -3,6 +3,7 @@ package com.alisimsek.service.impl;
 import com.alisimsek.converter.trainer.TrainerConverter;
 import com.alisimsek.dto.request.TrainerCreateRequest;
 import com.alisimsek.dto.request.UpdateTrainerRequest;
+import com.alisimsek.dto.request.UserSearchRequest;
 import com.alisimsek.dto.response.TrainerProfileResponse;
 import com.alisimsek.dto.response.TrainerUpdateResponse;
 import com.alisimsek.dto.response.UserRegistrationResponse;
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -71,7 +73,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public Trainer getrainerById(Long id) {
+    public TrainerProfileResponse getTrainerById(Long id) {
 
         log.info("Retrieving trainer with id {}", id);
 
@@ -81,7 +83,7 @@ public class TrainerServiceImpl implements TrainerService {
             return null;
         }
 
-        return trainerFromStorageOptional.get();
+        return trainerConverter.toTrainerProfileResponse(trainerFromStorageOptional.get());
     }
 
     @Override
@@ -105,6 +107,16 @@ public class TrainerServiceImpl implements TrainerService {
     @Override
     public void changeTrainerStatus(Long id) {
         userService.changeUserStatus(id);
+    }
+
+    @Override
+    public List<TrainerProfileResponse> searchTrainers(UserSearchRequest searchRequest) {
+        searchRequest.setUserType(UserType.TRAINER);
+        List<User> users = userService.searchUsers(searchRequest);
+        return users.stream()
+                .filter(user -> user instanceof Trainer)
+                .map(user -> trainerConverter.toTrainerProfileResponse((Trainer) user))
+                .toList();
     }
 
     private Trainer checkUserIsPresentAndTrainer(Optional<User> user) {
