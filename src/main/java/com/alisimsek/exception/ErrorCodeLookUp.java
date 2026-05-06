@@ -13,6 +13,7 @@ public class ErrorCodeLookUp {
         value = new HashMap<>();
         value.put("4000", "ENTITY_NOT_FOUND_EXCEPTION");
         value.put("4001", "ENTITY_ALREADY_EXISTS_EXCEPTION");
+        value.put("4002", "TRAINER_WORKLOAD_NOT_FOUND_EXCEPTION");
     }
 
     public static String getMessageKey(String errorCode) {

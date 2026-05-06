@@ -7,10 +7,13 @@ import com.alisimsek.dto.response.TraineeProfileResponse;
 import com.alisimsek.dto.response.TraineeUpdateResponse;
 import com.alisimsek.dto.response.TrainerBasicInfoDto;
 import com.alisimsek.dto.response.UserRegistrationResponse;
+import com.alisimsek.enums.ActionType;
 import com.alisimsek.enums.UserType;
 import com.alisimsek.exception.customException.EntityNotFoundException;
+import com.alisimsek.messaging.TrainerWorkloadMessageProducer;
 import com.alisimsek.model.Trainee;
 import com.alisimsek.model.Trainer;
+import com.alisimsek.model.Training;
 import com.alisimsek.model.User;
 import com.alisimsek.repository.TraineeRepository;
 import com.alisimsek.repository.TrainerRepository;
@@ -40,6 +43,7 @@ public class TraineeServiceImpl implements TraineeService {
     private final TraineeConverter traineeConverter;
     private final TrainerRepository trainerRepository;
     private final TrainerConverter trainerConverter;
+    private final TrainerWorkloadMessageProducer trainerWorkloadMessageProducer;
 
     @Override
     public UserRegistrationResponse createTrainee(TraineeCreatRequest createRequest) {
@@ -87,9 +91,17 @@ public class TraineeServiceImpl implements TraineeService {
 
         Trainee trainee = checkUserIsPresentAndTrainee(user);
 
-        traineeRepository.delete(trainee);
+        List<Training> trainingsOfTrainee = trainee.getTrainings();
 
+        List<TrainerWorkloadRequest> trainerWorkloadListRequest = buildTrainerWorkloadListRequest(trainingsOfTrainee, ActionType.DELETE);
+
+        traineeRepository.delete(trainee);
         log.info("Trainee with username {} deleted.", username);
+
+        // Trainee deletion may remove trainings from workload
+        log.info("Sending Workload list request");
+        trainerWorkloadMessageProducer.publishTrainerWorkloadList(trainerWorkloadListRequest);
+        log.info("Workload list request sent asynchronously.");
     }
 
     @Override
@@ -198,5 +210,23 @@ public class TraineeServiceImpl implements TraineeService {
         trainee.setAddress(createRequest.address());
         trainee.setUserType(UserType.TRAINEE);
         return trainee;
+    }
+
+    private List<TrainerWorkloadRequest> buildTrainerWorkloadListRequest(List<Training> trainingsOfTrainee, ActionType actionType) {
+        List<TrainerWorkloadRequest> trainerWorkloadListRequest = new ArrayList<>();
+        for (Training training : trainingsOfTrainee) {
+            Trainer trainer = training.getTrainer();
+            TrainerWorkloadRequest request = TrainerWorkloadRequest.builder()
+                    .trainerUsername(trainer.getUsername())
+                    .trainerFirstName(trainer.getFirstName())
+                    .trainerLastName(trainer.getLastName())
+                    .active(trainer.isActive())
+                    .trainingDate(training.getTrainingDate())
+                    .trainingDuration(training.getTrainingDuration())
+                    .actionType(actionType)
+                    .build();
+            trainerWorkloadListRequest.add(request);
+        }
+        return trainerWorkloadListRequest;
     }
 }

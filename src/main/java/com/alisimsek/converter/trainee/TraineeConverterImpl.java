@@ -25,6 +25,7 @@ public class TraineeConverterImpl implements TraineeConverter {
     @Override
     public TraineeProfileResponse toTraineeProfileResponse(Trainee trainee) {
         return TraineeProfileResponse.builder()
+                .username(trainee.getUsername())
                 .firstName(trainee.getFirstName())
                 .lastName(trainee.getLastName())
                 .dateOfBirth(trainee.getDateOfBirth())

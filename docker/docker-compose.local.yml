@@ -39,6 +39,20 @@ services:
     depends_on:
       - mongo
 
+  activemq:
+    image: apache/activemq-classic:6.1.7
+    container_name: activemq-gym-management-local
+    restart: unless-stopped
+    ports:
+      - "61616:61616"
+      - "8161:8161"
+    environment:
+      - ACTIVEMQ_ADMIN_LOGIN=admin
+      - ACTIVEMQ_ADMIN_PASSWORD=admin
+    volumes:
+      - activemq_data:/opt/activemq/data
+
 volumes:
   gym-management-postgres-local-data:
   mongo_data:
+  activemq_data:

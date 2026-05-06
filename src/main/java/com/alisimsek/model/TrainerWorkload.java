@@ -34,17 +34,17 @@ public class TrainerWorkload {
 
     private boolean active;
 
-    @Field("years")
-    private List<YearWorkload> years = new ArrayList<>();
+    @Field("yearlyWorkloads")
+    private List<YearlyWorkload> yearlyWorkloads = new ArrayList<>();
 
     @Getter
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class YearWorkload {
+    public static class YearlyWorkload {
         private int year;
-        private List<MonthWorkload> months = new ArrayList<>();
+        private List<MonthlyWorkload> monthlyWorkloads = new ArrayList<>();
     }
 
     @Getter
@@ -52,8 +52,8 @@ public class TrainerWorkload {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class MonthWorkload {
+    public static class MonthlyWorkload {
         private int month; // 1-12
-        private int trainingSummaryDuration; // total duration for the month
+        private int totalTrainingDuration; // total duration for the month
     }
 }

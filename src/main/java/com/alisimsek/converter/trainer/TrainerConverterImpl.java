@@ -30,6 +30,7 @@ public class TrainerConverterImpl implements TrainerConverter {
 
     public TrainerProfileResponse toTrainerProfileResponse(Trainer trainer) {
         return TrainerProfileResponse.builder()
+                .username(trainer.getUsername())
                 .firstName(trainer.getFirstName())
                 .lastName(trainer.getLastName())
                 .specialization(Objects.nonNull(trainer.getSpecialization()) ? trainer.getSpecialization().getTrainingTypeName() : null)

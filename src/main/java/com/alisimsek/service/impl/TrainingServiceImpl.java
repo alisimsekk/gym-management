@@ -1,13 +1,16 @@
 package com.alisimsek.service.impl;
 
 import com.alisimsek.converter.training.TrainingConverter;
+import com.alisimsek.dto.request.TrainerWorkloadRequest;
 import com.alisimsek.dto.request.TrainingRequest;
 import com.alisimsek.dto.request.TrainingSearchRequest;
 import com.alisimsek.dto.request.UpdateTrainingRequest;
 import com.alisimsek.dto.response.TrainingResponse;
+import com.alisimsek.enums.ActionType;
 import com.alisimsek.exception.ExceptionMessage;
 import com.alisimsek.exception.customException.EntityAlreadyExistsException;
 import com.alisimsek.exception.customException.EntityNotFoundException;
+import com.alisimsek.messaging.TrainerWorkloadMessageProducer;
 import com.alisimsek.model.Trainee;
 import com.alisimsek.model.Trainer;
 import com.alisimsek.model.Training;
@@ -37,6 +40,7 @@ public class TrainingServiceImpl implements TrainingService {
     private final TraineeService traineeService;
     private final TrainingTypeService trainingTypeService;
     private final TrainingConverter trainingConverter;
+    private final TrainerWorkloadMessageProducer trainerWorkloadMessageProducer;
 
     @Override
     public void createTraining(TrainingRequest createRequest) {
@@ -52,8 +56,18 @@ public class TrainingServiceImpl implements TrainingService {
 
         traineeService.addTrainerToTrainee(trainee, trainer);
 
-        trainingConverter.toTrainingResponse(trainingRepository.save(newTraining));
+        trainingRepository.save(newTraining);
+
         log.info("New training created successfully");
+
+        log.info("Sending Workload request for trainer: {}", trainer.getUsername());
+
+        TrainerWorkloadRequest workloadRequest = buildTrainerWorkloadRequest(trainer, createRequest.trainingDate(), createRequest.trainingDuration(), ActionType.ADD);
+
+        trainerWorkloadMessageProducer.publishTrainerWorkload(
+                workloadRequest
+        );
+        log.info("Workload request sent asynchronously.");
     }
 
     private void validateTrainingDoesNotExist(Trainer trainer, Trainee trainee, TrainingType type, LocalDate date) {
@@ -125,8 +139,18 @@ public class TrainingServiceImpl implements TrainingService {
         Training training = trainingRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException(Training.class.getSimpleName()));
 
+        Trainer trainer = training.getTrainer();
         trainingRepository.delete(training);
         log.info("Training with id {} deleted.", id);
+
+        log.info("Sending Workload request for trainer: {}", trainer.getUsername());
+
+        TrainerWorkloadRequest workloadRequest = buildTrainerWorkloadRequest(trainer, training.getTrainingDate(), training.getTrainingDuration(), ActionType.DELETE);
+
+        trainerWorkloadMessageProducer.publishTrainerWorkload(
+                workloadRequest
+        );
+        log.info("Workload request sent asynchronously.");
     }
 
     @Override
@@ -157,5 +181,17 @@ public class TrainingServiceImpl implements TrainingService {
             return count == 1;
         }
         return false;
+    }
+
+    private TrainerWorkloadRequest buildTrainerWorkloadRequest(Trainer trainer, LocalDate trainingDate, Integer trainingDuration, ActionType actionType) {
+        return TrainerWorkloadRequest.builder()
+                .trainerUsername(trainer.getUsername())
+                .trainerFirstName(trainer.getFirstName())
+                .trainerLastName(trainer.getLastName())
+                .active(trainer.isActive())
+                .trainingDate(trainingDate)
+                .trainingDuration(trainingDuration)
+                .actionType(actionType)
+                .build();
     }
 }

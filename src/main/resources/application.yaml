@@ -21,3 +21,30 @@ spring:
       auto-index-creation: true
   mongodb:
     uri: ${SPRING_DATA_MONGODB_URI:mongodb://root:example@localhost:27017/trainer_report?authSource=admin}
+  activemq:
+    broker-url: ${ACTIVEMQ_BROKER_URL:tcp://localhost:61616}
+    user: ${ACTIVEMQ_USER:admin}
+    password: ${ACTIVEMQ_PASSWORD:admin}
+    pool:
+      enabled: true
+      max-connections: 10
+      idle-timeout: 30000
+    redelivery-policy:
+      maximum-redeliveries: 3
+      initial-redelivery-delay: 1000
+      redelivery-delay: 2000
+      use-exponential-backoff: true
+      backoff-multiplier: 2
+
+  jms:
+    template:
+      default-destination: trainer-workload-queue
+      delivery-mode: persistent
+    listener:
+      session:
+        acknowledge-mode: auto
+
+app:
+  jms:
+    listener:
+      concurrencyRange: ${JMS_LISTENER_CONCURRENCY:1-3}

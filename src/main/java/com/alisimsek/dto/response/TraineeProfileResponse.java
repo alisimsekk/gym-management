@@ -7,6 +7,7 @@ import java.util.List;
 
 @Builder
 public record TraineeProfileResponse(
+    String username,
     String firstName,
     String lastName,
     LocalDate dateOfBirth,
