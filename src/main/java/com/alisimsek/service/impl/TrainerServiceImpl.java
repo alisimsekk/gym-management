@@ -24,6 +24,7 @@ import com.alisimsek.util.PasswordGenerator;
 import com.alisimsek.util.UsernameGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +44,7 @@ public class TrainerServiceImpl implements TrainerService {
     private final UserService userService;
     private final TrainerConverter trainerConverter;
     private final WorkloadService workloadService;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserRegistrationResponse createTrainer(TrainerCreateRequest createRequest) {
@@ -175,7 +177,7 @@ public class TrainerServiceImpl implements TrainerService {
         trainer.setFirstName(createRequest.firstName());
         trainer.setLastName(createRequest.lastName());
         trainer.setUsername(username);
-        trainer.setPassword(rawPassword);
+        trainer.setPassword(passwordEncoder.encode(rawPassword));
         trainer.setSpecialization(trainingType);
         trainer.setUserType(UserType.TRAINER);
         return trainer;

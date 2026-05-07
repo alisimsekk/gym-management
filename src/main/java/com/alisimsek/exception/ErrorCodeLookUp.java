@@ -14,6 +14,9 @@ public class ErrorCodeLookUp {
         value.put("4000", "ENTITY_NOT_FOUND_EXCEPTION");
         value.put("4001", "ENTITY_ALREADY_EXISTS_EXCEPTION");
         value.put("4002", "TRAINER_WORKLOAD_NOT_FOUND_EXCEPTION");
+        value.put("4003", "PASSWORD_MISMATCH_EXCEPTION");
+        value.put("4004", "USER_MISMATCH_EXCEPTION");
+        value.put("4005", "USER_LOCKED_EXCEPTION");
     }
 
     public static String getMessageKey(String errorCode) {

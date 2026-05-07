@@ -23,6 +23,7 @@ import com.alisimsek.util.PasswordGenerator;
 import com.alisimsek.util.UsernameGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -44,6 +45,7 @@ public class TraineeServiceImpl implements TraineeService {
     private final TrainerRepository trainerRepository;
     private final TrainerConverter trainerConverter;
     private final TrainerWorkloadMessageProducer trainerWorkloadMessageProducer;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserRegistrationResponse createTrainee(TraineeCreatRequest createRequest) {
@@ -205,7 +207,7 @@ public class TraineeServiceImpl implements TraineeService {
         trainee.setFirstName(createRequest.firstName());
         trainee.setLastName(createRequest.lastName());
         trainee.setUsername(username);
-        trainee.setPassword((rawPassword));
+        trainee.setPassword(passwordEncoder.encode(rawPassword));
         trainee.setDateOfBirth(createRequest.dateOfBirth());
         trainee.setAddress(createRequest.address());
         trainee.setUserType(UserType.TRAINEE);
