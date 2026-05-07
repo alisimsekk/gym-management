@@ -51,6 +51,14 @@ public class TrainerController {
         return ResponseEntity.ok(trainerService.updateTrainer(id, request));
     }
 
+    @Operation(summary = "Delete trainer profile")
+    @ApiResponse(responseCode = "200", description = "Trainer profile deleted")
+    @DeleteMapping("/{username}")
+    public ResponseEntity<Void> deleteTrainerProfile(@PathVariable(value = "username") String username) {
+        trainerService.deleteTrainerByUsername(username);
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "Update trainer active status")
     @ApiResponse(responseCode = "200", description = "Trainer status updated")
     @PatchMapping("/{id}/status")

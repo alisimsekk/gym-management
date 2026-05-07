@@ -25,4 +25,6 @@ public interface TrainerService {
     void changeTrainerStatus(Long id);
 
     List<TrainerProfileResponse> searchTrainers(UserSearchRequest searchRequest);
+
+    void deleteTrainerByUsername(String username);
 }

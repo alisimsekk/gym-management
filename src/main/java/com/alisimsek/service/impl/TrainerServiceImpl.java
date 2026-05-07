@@ -10,18 +10,22 @@ import com.alisimsek.dto.response.UserRegistrationResponse;
 import com.alisimsek.enums.UserType;
 import com.alisimsek.exception.ExceptionMessage;
 import com.alisimsek.exception.customException.EntityNotFoundException;
+import com.alisimsek.model.Trainee;
 import com.alisimsek.model.Trainer;
+import com.alisimsek.model.TrainerWorkload;
 import com.alisimsek.model.TrainingType;
 import com.alisimsek.model.User;
 import com.alisimsek.repository.TrainerRepository;
 import com.alisimsek.service.TrainerService;
 import com.alisimsek.service.TrainingTypeService;
 import com.alisimsek.service.UserService;
+import com.alisimsek.service.WorkloadService;
 import com.alisimsek.util.PasswordGenerator;
 import com.alisimsek.util.UsernameGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +42,7 @@ public class TrainerServiceImpl implements TrainerService {
     private final TrainingTypeService trainingTypeService;
     private final UserService userService;
     private final TrainerConverter trainerConverter;
+    private final WorkloadService workloadService;
 
     @Override
     public UserRegistrationResponse createTrainer(TrainerCreateRequest createRequest) {
@@ -117,6 +122,31 @@ public class TrainerServiceImpl implements TrainerService {
                 .filter(user -> user instanceof Trainer)
                 .map(user -> trainerConverter.toTrainerProfileResponse((Trainer) user))
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public void deleteTrainerByUsername(String username) {
+        Optional<User> user = userService.findByUsername(username);
+
+        Trainer trainer = checkUserIsPresentAndTrainer(user);
+
+        // Unlink trainer from trainees to avoid constraint violations
+        for (Trainee trainee : trainer.getTrainees()) {
+            trainee.getAssignedTrainers().remove(trainer);
+        }
+        trainer.getTrainees().clear();
+
+        Optional<TrainerWorkload> trainerWorkload = workloadService.getTrainerWorkloadByUsername(username);
+
+        trainerWorkload.ifPresent(workload -> {
+            workload.setActive(false);
+            workloadService.updateWorkload(workload);
+            log.info("Deleted trainer workload with trainerUsername: {}", username);
+        });
+
+        trainerRepository.delete(trainer);
+        log.info("Trainer with username {} deleted.", username);
     }
 
     private Trainer checkUserIsPresentAndTrainer(Optional<User> user) {

@@ -18,6 +18,7 @@ import java.time.Month;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -35,7 +36,7 @@ public class WorkloadServiceImpl implements WorkloadService {
         int month = trainingDate.getMonthValue();
 
         TrainerWorkload trainerDoc = trainerWorkloadRepository
-                .findByTrainerUsername(workloadRequest.getTrainerUsername())
+                .findByTrainerUsernameAndActive(workloadRequest.getTrainerUsername(), true)
                 .orElseGet(() -> buildTrainerWorkload(workloadRequest));
 
         // find or create year node
@@ -71,7 +72,7 @@ public class WorkloadServiceImpl implements WorkloadService {
     @Override
     public TrainerWorkloadSummary getWorkloadSummary(String trainerUsername) {
         log.info("Getting workload summary for trainer username: {}", trainerUsername);
-        TrainerWorkload trainerWorkload = trainerWorkloadRepository.findByTrainerUsername(trainerUsername)
+        TrainerWorkload trainerWorkload = trainerWorkloadRepository.findByTrainerUsernameAndActive(trainerUsername, true)
                 .orElseThrow(TrainerWorkloadNotFoundException::new);
 
         List<YearlyWorkload> yearlyWorkloads = trainerWorkload.getYearlyWorkloads().stream()
@@ -101,6 +102,16 @@ public class WorkloadServiceImpl implements WorkloadService {
                 .active(trainerWorkload.isActive())
                 .yearlyWorkloads(yearlyWorkloads)
                 .build();
+    }
+
+    @Override
+    public Optional<TrainerWorkload> getTrainerWorkloadByUsername(String trainerUsername) {
+        return trainerWorkloadRepository.findByTrainerUsernameAndActive(trainerUsername, true);
+    }
+
+    @Override
+    public void updateWorkload(TrainerWorkload trainerWorkload) {
+        trainerWorkloadRepository.save(trainerWorkload);
     }
 
     private TrainerWorkload.MonthlyWorkload buildMonthWorkload(int month) {

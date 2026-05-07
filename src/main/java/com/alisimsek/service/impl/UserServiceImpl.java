@@ -1,10 +1,11 @@
-package com.alisimsek.service;
+package com.alisimsek.service.impl;
 
 import com.alisimsek.dto.request.UserSearchRequest;
 import com.alisimsek.exception.ExceptionMessage;
 import com.alisimsek.exception.customException.EntityNotFoundException;
 import com.alisimsek.model.User;
 import com.alisimsek.repository.UserRepository;
+import com.alisimsek.service.UserService;
 import com.alisimsek.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
