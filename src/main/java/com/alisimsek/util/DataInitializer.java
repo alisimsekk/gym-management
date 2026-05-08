@@ -2,9 +2,11 @@ package com.alisimsek.util;
 
 import com.alisimsek.dto.request.TrainingRequest;
 import com.alisimsek.enums.UserType;
+import com.alisimsek.model.Admin;
 import com.alisimsek.model.Trainee;
 import com.alisimsek.model.Trainer;
 import com.alisimsek.model.TrainingType;
+import com.alisimsek.repository.AdminRepository;
 import com.alisimsek.repository.TraineeRepository;
 import com.alisimsek.repository.TrainerRepository;
 import com.alisimsek.repository.TrainingTypeRepository;
@@ -34,6 +36,7 @@ public class DataInitializer {
     private final TrainerRepository trainerRepository;
     private final TraineeRepository traineeRepository;
     private final TrainingService trainingService;
+    private final AdminRepository adminRepository;
     private final ObjectMapper objectMapper;
 
     @Value("${initial.data.trainingType.file}")
@@ -47,6 +50,9 @@ public class DataInitializer {
 
     @Value("${initial.data.training.file}")
     private String trainingDataPath;
+
+    @Value("${initial.data.admin.file}")
+    private String adminDataPath;
 
     @PostConstruct
     public void initData() {
@@ -65,6 +71,12 @@ public class DataInitializer {
                     .collect(Collectors.toMap(TrainingType::getId, Function.identity()));
             log.info("Training types initialized: {}", savedTrainingTypes.size());
 
+            // Initialize Admin
+            List<Admin> admins = loadDataFromJson(adminDataPath, new TypeReference<List<Admin>>() {});
+            Map<String, Admin> savedAdmins = admins.stream()
+                    .map(adminRepository::save)
+                    .collect(Collectors.toMap(Admin::getUsername, Function.identity()));
+            log.info("Admins initialized: {}", savedAdmins.size());
 
 
             // Initialize Trainers
