@@ -1,0 +1,26 @@
+[
+  {
+    "trainingName": "Morning Cardio",
+    "trainerUsername": "john.smith",
+    "traineeUsername": "sarah.johnson",
+    "trainingTypeId": 1,
+    "trainingDate": "2026-05-08",
+    "trainingDuration": 60
+  },
+  {
+    "trainingName": "Strength Basics",
+    "trainerUsername": "emma.wilson",
+    "traineeUsername": "david.miller",
+    "trainingTypeId": 2,
+    "trainingDate": "2024-05-09",
+    "trainingDuration": 45
+  },
+  {
+    "trainingName": "Yoga Flow",
+    "trainerUsername": "michael.brown",
+    "traineeUsername": "lisa.anderson",
+    "trainingTypeId": 3,
+    "trainingDate": "2024-05-10",
+    "trainingDuration": 90
+  }
+]

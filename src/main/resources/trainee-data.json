@@ -1,0 +1,32 @@
+[
+  {
+    "firstName": "Sarah",
+    "lastName": "Johnson",
+    "username": "sarah.johnson",
+    "password": "$2a$12$SCFw.gc1Vz3ccziZegck9OHuI9FVWIQ5LKm1HhZ3Yms3eftwYggLy",
+    "dateOfBirth": "1995-03-15",
+    "address": "123 Main St, City",
+    "active": true,
+    "userType": "TRAINEE"
+  },
+  {
+    "firstName": "David",
+    "lastName": "Miller",
+    "username": "david.miller",
+    "password": "$2a$12$WTOSmxptyJ.L8vHMC995ZeoAZZhCNZdg/Lk9BcEX1lq4H2Fizs7rS",
+    "dateOfBirth": "1990-07-22",
+    "address": "456 Oak Ave, Town",
+    "active": true,
+    "userType": "TRAINEE"
+  },
+  {
+    "firstName": "Lisa",
+    "lastName": "Anderson",
+    "username": "lisa.anderson",
+    "password": "$2a$12$a8c.o2Cw.aPACrcKdsgyyOhtubDogJNZ51nztA0eHfPvOGnz286ba",
+    "dateOfBirth": "1993-11-08",
+    "address": "789 Pine St, Village",
+    "active": true,
+    "userType": "TRAINEE"
+  }
+]

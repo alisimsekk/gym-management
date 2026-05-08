@@ -1,0 +1,29 @@
+[
+  {
+    "firstName": "John",
+    "lastName": "Smith",
+    "username": "john.smith",
+    "password": "$2a$12$MIc0ajBSfHmSEchInK.RVeiMyzHOfdd.1Qe5MmcgF5RAofXWUu6Ce",
+    "active": true,
+    "specializationId": 1,
+    "userType": "TRAINER"
+  },
+  {
+    "firstName": "Emma",
+    "lastName": "Wilson",
+    "username": "emma.wilson",
+    "password": "$2a$12$I9EYRgcoNRfJZM1R/OPAKuciI64NKGr/rklQT921eKA3QX/YGSq56",
+    "active": true,
+    "specializationId": 2,
+    "userType": "TRAINER"
+  },
+  {
+    "firstName": "Michael",
+    "lastName": "Brown",
+    "username": "michael.brown",
+    "password": "$2a$12$jiUyrD1i.VitkW.UDtSk5uivtFgQoFcfKpUxJVs/X.8TNj0AnoDFi",
+    "active": true,
+    "specializationId": 3,
+    "userType": "TRAINER"
+  }
+]
