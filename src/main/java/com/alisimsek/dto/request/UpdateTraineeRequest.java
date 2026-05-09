@@ -1,5 +1,6 @@
 package com.alisimsek.dto.request;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -12,6 +13,10 @@ public record UpdateTraineeRequest(
 
     @NotBlank(message = "Last name is required")
     String lastName,
+    
+    @Email(message = "Email should be valid")
+    @NotBlank(message = "Email is required")
+    String email,
 
     LocalDate dateOfBirth,
     String address,

@@ -73,6 +73,7 @@ public class TrainerServiceImpl implements TrainerService {
 
         trainerFromStorage.setFirstName(updateRequest.firstName());
         trainerFromStorage.setLastName(updateRequest.lastName());
+        trainerFromStorage.setEmail(updateRequest.email());
         trainerFromStorage.setSpecialization(trainingType);
         trainerFromStorage.setActive(updateRequest.isActive());
 
@@ -176,6 +177,7 @@ public class TrainerServiceImpl implements TrainerService {
         Trainer trainer = new Trainer();
         trainer.setFirstName(createRequest.firstName());
         trainer.setLastName(createRequest.lastName());
+        trainer.setEmail(createRequest.email());
         trainer.setUsername(username);
         trainer.setPassword(passwordEncoder.encode(rawPassword));
         trainer.setSpecialization(trainingType);

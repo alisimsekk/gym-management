@@ -6,11 +6,12 @@ import java.util.List;
 
 @Builder
 public record TrainerProfileResponse(
-    String username,
-    String firstName,
-    String lastName,
-    String specialization,
-    boolean isActive,
-    List<TraineeBasicInfoDto> trainees
-) {
+        Long id,
+        String username,
+        String firstName,
+        String lastName,
+        String email,
+        String specialization,
+        boolean isActive,
+        List<TraineeBasicInfoDto> trainees) {
 }

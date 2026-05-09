@@ -55,9 +55,7 @@ public class TraineeController {
     @Operation(summary = "Update trainee active status")
     @ApiResponse(responseCode = "200", description = "Trainee status updated")
     @PatchMapping("/{id}/status")
-    public ResponseEntity<Void> updateTraineeStatus(
-            @PathVariable(value = "id") Long id) {
-
+    public ResponseEntity<Void> updateTraineeStatus(@PathVariable(value = "id") Long id) {
         traineeService.changeTraineeStatus(id);
         return ResponseEntity.ok().build();
     }

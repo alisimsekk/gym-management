@@ -66,6 +66,7 @@ public class TraineeServiceImpl implements TraineeService {
 
         traineeFromStorage.setFirstName(updateRequest.firstName());
         traineeFromStorage.setLastName(updateRequest.lastName());
+        traineeFromStorage.setEmail(updateRequest.email());
 
         LocalDate dateOfBirth = Objects.nonNull(updateRequest.dateOfBirth()) ? updateRequest.dateOfBirth() : traineeFromStorage.getDateOfBirth();
         traineeFromStorage.setDateOfBirth(dateOfBirth);
@@ -206,6 +207,7 @@ public class TraineeServiceImpl implements TraineeService {
         Trainee trainee = new Trainee();
         trainee.setFirstName(createRequest.firstName());
         trainee.setLastName(createRequest.lastName());
+        trainee.setEmail(createRequest.email());
         trainee.setUsername(username);
         trainee.setPassword(passwordEncoder.encode(rawPassword));
         trainee.setDateOfBirth(createRequest.dateOfBirth());

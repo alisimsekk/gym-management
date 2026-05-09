@@ -57,3 +57,7 @@ jwt:
 login:
   max-attempts: 3
   block-time-minutes: 5
+
+cors:
+  allowed-origins:
+    - "http://localhost:5173"

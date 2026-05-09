@@ -122,6 +122,7 @@ public class DataInitializer {
     private Trainer createTrainer(TrainerDataDto dto, Map<Long, TrainingType> trainingTypes) {
         Trainer trainer = new Trainer();
         trainer.setUsername(dto.username());
+        trainer.setEmail(dto.email());
         trainer.setFirstName(dto.firstName());
         trainer.setLastName(dto.lastName());
         trainer.setPassword(dto.password());
@@ -136,6 +137,7 @@ public class DataInitializer {
             String firstName,
             String lastName,
             String username,
+            String email,
             String password,
             boolean active,
             Long specializationId,

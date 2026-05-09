@@ -3,6 +3,7 @@
     "firstName": "admin",
     "lastName": "admin",
     "username": "admin.admin",
+    "email" : "admin@gmail.com",
     "password": "$2a$12$ggNJqiKjU3GSscN2sU4YcudxJ5vq9Yg.wrVzeScnQC/zeUeBiF.1.",
     "active": true,
     "userType": "ADMIN"

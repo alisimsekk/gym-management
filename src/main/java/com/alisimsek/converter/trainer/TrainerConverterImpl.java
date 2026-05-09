@@ -30,9 +30,11 @@ public class TrainerConverterImpl implements TrainerConverter {
 
     public TrainerProfileResponse toTrainerProfileResponse(Trainer trainer) {
         return TrainerProfileResponse.builder()
+                .id(trainer.getId())
                 .username(trainer.getUsername())
                 .firstName(trainer.getFirstName())
                 .lastName(trainer.getLastName())
+                .email(trainer.getEmail())
                 .specialization(Objects.nonNull(trainer.getSpecialization()) ? trainer.getSpecialization().getTrainingTypeName() : null)
                 .isActive(trainer.isActive())
                 .trainees(!trainer.getTrainees().isEmpty() ? trainer.getTrainees().stream().map(this::toTraineeBasicInfoDto).toList() : null)
@@ -42,9 +44,11 @@ public class TrainerConverterImpl implements TrainerConverter {
     @Override
     public TrainerUpdateResponse toTrainerUpdateResponse(Trainer trainer) {
         return TrainerUpdateResponse.builder()
+                .id(trainer.getId())
                 .username(trainer.getUsername())
                 .firstName(trainer.getFirstName())
                 .lastName(trainer.getLastName())
+                .email(trainer.getEmail())
                 .specialization(Objects.nonNull(trainer.getSpecialization()) ? trainer.getSpecialization().getTrainingTypeName() : null)
                 .isActive(trainer.isActive())
                 .trainees(!trainer.getTrainees().isEmpty() ? trainer.getTrainees().stream().map(this::toTraineeBasicInfoDto).toList() : null)

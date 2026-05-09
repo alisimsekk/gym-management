@@ -25,9 +25,11 @@ public class TraineeConverterImpl implements TraineeConverter {
     @Override
     public TraineeProfileResponse toTraineeProfileResponse(Trainee trainee) {
         return TraineeProfileResponse.builder()
+                .id(trainee.getId())
                 .username(trainee.getUsername())
                 .firstName(trainee.getFirstName())
                 .lastName(trainee.getLastName())
+                .email(trainee.getEmail())
                 .dateOfBirth(trainee.getDateOfBirth())
                 .address(trainee.getAddress())
                 .isActive(trainee.isActive())
@@ -38,9 +40,11 @@ public class TraineeConverterImpl implements TraineeConverter {
     @Override
     public TraineeUpdateResponse toTraineeUpdateResponse(Trainee trainee) {
         return TraineeUpdateResponse.builder()
+                .id(trainee.getId())
                 .username(trainee.getUsername())
                 .firstName(trainee.getFirstName())
                 .lastName(trainee.getLastName())
+                .email(trainee.getEmail())
                 .dateOfBirth(trainee.getDateOfBirth())
                 .address(trainee.getAddress())
                 .isActive(trainee.isActive())
