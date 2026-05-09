@@ -12,6 +12,7 @@ public record TrainerUpdateResponse(
         String lastName,
         String email,
         String specialization,
+        Long specializationId,
         boolean isActive,
         List<TraineeBasicInfoDto> trainees
 ) {

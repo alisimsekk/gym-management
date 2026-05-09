@@ -36,6 +36,7 @@ public class TrainerConverterImpl implements TrainerConverter {
                 .lastName(trainer.getLastName())
                 .email(trainer.getEmail())
                 .specialization(Objects.nonNull(trainer.getSpecialization()) ? trainer.getSpecialization().getTrainingTypeName() : null)
+                .specializationId(Objects.nonNull(trainer.getSpecialization()) ? trainer.getSpecialization().getId() : null)
                 .isActive(trainer.isActive())
                 .trainees(!trainer.getTrainees().isEmpty() ? trainer.getTrainees().stream().map(this::toTraineeBasicInfoDto).toList() : null)
                 .build();
@@ -50,6 +51,7 @@ public class TrainerConverterImpl implements TrainerConverter {
                 .lastName(trainer.getLastName())
                 .email(trainer.getEmail())
                 .specialization(Objects.nonNull(trainer.getSpecialization()) ? trainer.getSpecialization().getTrainingTypeName() : null)
+                .specializationId(Objects.nonNull(trainer.getSpecialization()) ? trainer.getSpecialization().getId() : null)
                 .isActive(trainer.isActive())
                 .trainees(!trainer.getTrainees().isEmpty() ? trainer.getTrainees().stream().map(this::toTraineeBasicInfoDto).toList() : null)
                 .build();

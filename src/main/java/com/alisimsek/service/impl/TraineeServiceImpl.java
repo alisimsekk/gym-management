@@ -124,24 +124,25 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     public List<TrainerBasicInfoDto> updateTrainerList(String username, UpdateTrainerListRequest request) {
 
+        log.info("Updating trainee's trainer list.");
+
         Trainee trainee = checkUserIsPresentAndTrainee(userService.findByUsername(username));
 
         List<String> newTrainerUsernames = request.trainerUsernames();
 
         List<Trainer> newTrainers = trainerRepository.findByUsernameIn(newTrainerUsernames);
-        if (newTrainers.size() != newTrainerUsernames.size()) {
-            throw new IllegalArgumentException("One or more trainers not found");
-        }
 
         // Remove old trainers if they have no training with this trainee
         List<Trainer> trainersToRemove = new ArrayList<>(trainee.getAssignedTrainers());
+        trainersToRemove.removeAll(newTrainers);
+
         for (Trainer oldTrainer : trainersToRemove) {
             boolean hasTraining = trainee.getTrainings().stream()
                     .anyMatch(training -> training.getTrainer().equals(oldTrainer));
-            if (!hasTraining) {
-                trainee.getAssignedTrainers().remove(oldTrainer);
-                //trainee.removeTrainer(oldTrainer);
+            if (hasTraining) {
+                throw new IllegalArgumentException("Bu antrenorle planlanmis antrenmanlarin bulunuyor. Once ilgili antrenmanlari guncelle veya sil.");
             }
+            trainee.getAssignedTrainers().remove(oldTrainer);
         }
 
         // Add new trainers
@@ -151,6 +152,7 @@ public class TraineeServiceImpl implements TraineeService {
 
         Trainee savedTrainee = traineeRepository.save(trainee);
 
+        log.info("Trainee's trainer list updated.");
         return savedTrainee.getAssignedTrainers().stream().map(trainerConverter::toTrainerBasicInfoDto).toList();
     }
 

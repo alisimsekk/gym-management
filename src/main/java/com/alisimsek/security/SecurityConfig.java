@@ -50,8 +50,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(WHITE_LIST).permitAll()
                         .requestMatchers("/admin/users/**").hasRole(UserType.ADMIN.name())
-                        .requestMatchers("/trainees/**").hasAnyRole(UserType.TRAINEE.name(), UserType.ADMIN.name())
-                        .requestMatchers("/trainers/**").hasAnyRole(UserType.TRAINER.name(), UserType.ADMIN.name())
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(customAuthenticationEntryPoint))

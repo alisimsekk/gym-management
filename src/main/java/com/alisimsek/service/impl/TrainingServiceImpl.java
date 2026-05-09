@@ -7,14 +7,12 @@ import com.alisimsek.dto.request.TrainingSearchRequest;
 import com.alisimsek.dto.request.UpdateTrainingRequest;
 import com.alisimsek.dto.response.TrainingResponse;
 import com.alisimsek.enums.ActionType;
+import com.alisimsek.enums.UserType;
 import com.alisimsek.exception.ExceptionMessage;
 import com.alisimsek.exception.customException.EntityAlreadyExistsException;
 import com.alisimsek.exception.customException.EntityNotFoundException;
 import com.alisimsek.messaging.TrainerWorkloadMessageProducer;
-import com.alisimsek.model.Trainee;
-import com.alisimsek.model.Trainer;
-import com.alisimsek.model.Training;
-import com.alisimsek.model.TrainingType;
+import com.alisimsek.model.*;
 import com.alisimsek.repository.TrainingRepository;
 import com.alisimsek.service.TraineeService;
 import com.alisimsek.service.TrainerService;
@@ -23,6 +21,8 @@ import com.alisimsek.service.TrainingTypeService;
 import com.alisimsek.specification.TrainingSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -48,6 +48,9 @@ public class TrainingServiceImpl implements TrainingService {
 
         Trainer trainer = trainerService.getActiveTrainerByUsername(createRequest.trainerUsername());
         Trainee trainee = traineeService.getActiveTraineeByUsername(createRequest.traineeUsername());
+
+        isUserAuthorized(trainee, trainer);
+
         TrainingType trainingType = trainingTypeService.getTrainingTypeById(createRequest.trainingTypeId());
 
         validateTrainingDoesNotExist(trainer, trainee, trainingType, createRequest.trainingDate());
@@ -94,15 +97,24 @@ public class TrainingServiceImpl implements TrainingService {
 
         Trainee trainee = traineeService.getActiveTraineeByUsername(updateTrainingRequest.traineeUsername());
 
+        Trainer trainer = trainerService.getActiveTrainerByUsername(updateTrainingRequest.trainerUsername());
+        
+        TrainingType trainingType = trainingTypeService.getTrainingTypeById(updateTrainingRequest.trainingTypeId());
+
+        isUserAuthorized(trainee, trainer);
+
         Training trainingFromStorage = trainingRepository.findByIdAndTraineeId(id, trainee.getId())
                 .orElseThrow(() -> new EntityNotFoundException(Training.class.getSimpleName()));
-
-        Trainer trainer = trainerService.getActiveTrainerByUsername(updateTrainingRequest.trainerUsername());
 
         Trainer oldTrainer = trainingFromStorage.getTrainer();
         removeTrainerIf(trainee, oldTrainer);
 
         trainingFromStorage.setTrainer(trainer);
+        trainingFromStorage.setTrainingName(updateTrainingRequest.trainingName());
+        trainingFromStorage.setTrainingType(trainingType);
+        trainingFromStorage.setTrainingDate(updateTrainingRequest.trainingDate());
+        trainingFromStorage.setTrainingDuration(updateTrainingRequest.trainingDuration());
+
         traineeService.addTrainerToTrainee(trainee, trainer);
 
         return trainingConverter.toTrainingResponse(trainingRepository.save(trainingFromStorage));
@@ -119,8 +131,11 @@ public class TrainingServiceImpl implements TrainingService {
             log.error(ExceptionMessage.getEntityNotFoundMessage("Training", id));
             return null;
         }
+        Training training = trainingFromStorageOptional.get();
 
-        return trainingConverter.toTrainingResponse(trainingFromStorageOptional.get());
+        isUserAuthorized(training.getTrainee(), training.getTrainer());
+
+        return trainingConverter.toTrainingResponse(training);
     }
 
     @Override
@@ -139,6 +154,8 @@ public class TrainingServiceImpl implements TrainingService {
         Training training = trainingRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException(Training.class.getSimpleName()));
 
+        isUserAuthorized(training.getTrainee(), training.getTrainer());
+
         Trainer trainer = training.getTrainer();
         trainingRepository.delete(training);
         log.info("Training with id {} deleted.", id);
@@ -155,16 +172,21 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     public List<TrainingResponse> searchTraining(TrainingSearchRequest trainingSearchRequest) {
+        log.info("Retrieving searched trainings");
+
+        User authenticatedUser = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        assert authenticatedUser != null;
+        UserType authenticatedUserUserType = authenticatedUser.getUserType();
+
+        if (UserType.TRAINEE.equals(authenticatedUserUserType)) {
+            trainingSearchRequest.setTraineeUsername(authenticatedUser.getUsername());
+        } else if (UserType.TRAINER.equals(authenticatedUserUserType)) {
+            trainingSearchRequest.setTrainerUsername(authenticatedUser.getUsername());
+        }
 
         List<Training> trainings = trainingRepository.findAll(TrainingSpecification.search(trainingSearchRequest));
 
-        if (Objects.nonNull(trainingSearchRequest.getTraineeUsername())) {
-            log.info("Retrieving all trainee's trainings for {}", trainingSearchRequest.getTraineeUsername());
-            return trainings.stream().map(trainingConverter::toTrainingResponse).toList();
-        } else {
-            log.info("Retrieving all trainer's trainings for {}", trainingSearchRequest.getTrainerUsername());
-            return trainings.stream().map(trainingConverter::toTrainingResponse).toList();
-        }
+        return trainings.stream().map(trainingConverter::toTrainingResponse).toList();
     }
 
     private void removeTrainerIf(Trainee trainee, Trainer oldTrainer) {
@@ -193,5 +215,19 @@ public class TrainingServiceImpl implements TrainingService {
                 .trainingDuration(trainingDuration)
                 .actionType(actionType)
                 .build();
+    }
+
+    private void isUserAuthorized(Trainee trainee, Trainer trainer) {
+        User authenticatedUser = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        assert authenticatedUser != null;
+        String authenticatedUserUsername = authenticatedUser.getUsername();
+        if (UserType.ADMIN.equals(authenticatedUser.getUserType())) {
+            return;
+        }
+        boolean isParticipant = authenticatedUserUsername.equals(trainee.getUsername())
+                || authenticatedUserUsername.equals(trainer.getUsername());
+        if (!isParticipant) {
+            throw new AccessDeniedException("Access denied. You are not authorized to update this training.");
+        }
     }
 }

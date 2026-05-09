@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,6 +33,7 @@ public class TrainerController {
 
     @Operation(summary = "Get trainer profile by username")
     @ApiResponse(responseCode = "200", description = "Trainer profile retrieved")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('TRAINER') and #username == authentication.name)")
     @GetMapping("/{username}")
     public ResponseEntity<TrainerProfileResponse> getTrainerProfileByUsername(@PathVariable(value = "username") String username) {
         return ResponseEntity.ok(trainerService.getTrainerProfileByUsername(username));
@@ -39,6 +41,7 @@ public class TrainerController {
 
     @Operation(summary = "Get trainer profile by ID")
     @ApiResponse(responseCode = "200", description = "Trainer profile retrieved")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('TRAINER') and #id == authentication.principal.id)")
     @GetMapping("/id/{id}")
     public ResponseEntity<TrainerProfileResponse> getTrainerById(@PathVariable(value = "id") Long id) {
         return ResponseEntity.ok(trainerService.getTrainerById(id));
@@ -46,6 +49,7 @@ public class TrainerController {
 
     @Operation(summary = "Update trainer profile")
     @ApiResponse(responseCode = "200", description = "Trainer profile updated")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('TRAINER') and #id == authentication.principal.id)")
     @PutMapping("/{id}")
     public ResponseEntity<TrainerUpdateResponse> updateTrainerProfile(@PathVariable(value = "id") Long id, @Valid @RequestBody UpdateTrainerRequest request) {
         return ResponseEntity.ok(trainerService.updateTrainer(id, request));
@@ -53,6 +57,7 @@ public class TrainerController {
 
     @Operation(summary = "Delete trainer profile")
     @ApiResponse(responseCode = "200", description = "Trainer profile deleted")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{username}")
     public ResponseEntity<Void> deleteTrainerProfile(@PathVariable(value = "username") String username) {
         trainerService.deleteTrainerByUsername(username);
@@ -61,6 +66,7 @@ public class TrainerController {
 
     @Operation(summary = "Update trainer active status")
     @ApiResponse(responseCode = "200", description = "Trainer status updated")
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/status")
     public ResponseEntity<Void> updateTrainerStatus(@PathVariable(value = "id") Long id) {
 
@@ -70,6 +76,7 @@ public class TrainerController {
 
     @Operation(summary = "Search trainers")
     @ApiResponse(responseCode = "200", description = "Trainers retrieved")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('TRAINEE'))")
     @PostMapping("/search")
     public ResponseEntity<List<TrainerProfileResponse>> searchTrainers(@RequestBody UserSearchRequest searchRequest) {
         return ResponseEntity.ok(trainerService.searchTrainers(searchRequest));

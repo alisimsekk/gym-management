@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,6 +46,7 @@ public class TrainingController {
 
     @Operation(summary = "Get all trainings")
     @ApiResponse(responseCode = "200", description = "Trainings successfully retrieved")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<TrainingResponse>> getAllTrainings() {
         return ResponseEntity.ok().body(trainingService.getAllTrainings());
