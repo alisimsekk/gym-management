@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -48,6 +49,7 @@ public class TrainingTypeController {
             @ApiResponse(responseCode = "201", description = "Successfully created training type"),
             @ApiResponse(responseCode = "400", description = "Invalid input data")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<TrainingTypeResponse> createTrainingType(@Valid @RequestBody TrainingTypeRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(trainingTypeService.createTrainingType(request));
@@ -59,6 +61,7 @@ public class TrainingTypeController {
             @ApiResponse(responseCode = "404", description = "Training type not found"),
             @ApiResponse(responseCode = "400", description = "Invalid input data")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<TrainingTypeResponse> updateTrainingType(@PathVariable Long id, @Valid @RequestBody TrainingTypeRequest request) {
         return ResponseEntity.ok(trainingTypeService.updateTrainingType(id, request));
@@ -69,6 +72,7 @@ public class TrainingTypeController {
             @ApiResponse(responseCode = "204", description = "Successfully deleted training type"),
             @ApiResponse(responseCode = "404", description = "Training type not found")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTrainingType(@PathVariable Long id) {
         trainingTypeService.deleteTrainingType(id);

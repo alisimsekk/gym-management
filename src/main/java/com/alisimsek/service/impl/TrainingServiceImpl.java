@@ -8,7 +8,6 @@ import com.alisimsek.dto.request.UpdateTrainingRequest;
 import com.alisimsek.dto.response.TrainingResponse;
 import com.alisimsek.enums.ActionType;
 import com.alisimsek.enums.UserType;
-import com.alisimsek.exception.ExceptionMessage;
 import com.alisimsek.exception.customException.EntityAlreadyExistsException;
 import com.alisimsek.exception.customException.EntityNotFoundException;
 import com.alisimsek.messaging.TrainerWorkloadMessageProducer;
@@ -103,12 +102,13 @@ public class TrainingServiceImpl implements TrainingService {
 
         isUserAuthorized(trainee, trainer);
 
-        Training trainingFromStorage = trainingRepository.findByIdAndTraineeId(id, trainee.getId())
+        Training trainingFromStorage = trainingRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(Training.class.getSimpleName()));
 
         Trainer oldTrainer = trainingFromStorage.getTrainer();
-        removeTrainerIf(trainee, oldTrainer);
+        removeTrainerIf(trainingFromStorage.getTrainee(), oldTrainer);
 
+        trainingFromStorage.setTrainee(trainee);
         trainingFromStorage.setTrainer(trainer);
         trainingFromStorage.setTrainingName(updateTrainingRequest.trainingName());
         trainingFromStorage.setTrainingType(trainingType);
@@ -125,17 +125,12 @@ public class TrainingServiceImpl implements TrainingService {
 
         log.info("Retrieving training with id: {}", id);
 
-        Optional<Training> trainingFromStorageOptional = trainingRepository.findById(id);
+        Training trainingFromStorage = trainingRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(Training.class.getSimpleName()));
 
-        if (trainingFromStorageOptional.isEmpty()) {
-            log.error(ExceptionMessage.getEntityNotFoundMessage("Training", id));
-            return null;
-        }
-        Training training = trainingFromStorageOptional.get();
+        isUserAuthorized(trainingFromStorage.getTrainee(), trainingFromStorage.getTrainer());
 
-        isUserAuthorized(training.getTrainee(), training.getTrainer());
-
-        return trainingConverter.toTrainingResponse(training);
+        return trainingConverter.toTrainingResponse(trainingFromStorage);
     }
 
     @Override

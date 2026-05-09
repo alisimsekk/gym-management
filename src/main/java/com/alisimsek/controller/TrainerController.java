@@ -26,6 +26,7 @@ public class TrainerController {
 
     @Operation(summary = "Register a new trainer")
     @ApiResponse(responseCode = "200", description = "Trainer successfully registered")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<UserRegistrationResponse> registerTrainer(@Valid @RequestBody TrainerCreateRequest request) {
         return ResponseEntity.ok(trainerService.createTrainer(request));
