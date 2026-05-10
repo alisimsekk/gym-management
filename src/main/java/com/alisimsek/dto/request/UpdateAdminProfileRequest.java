@@ -3,7 +3,7 @@ package com.alisimsek.dto.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-public record AdminCreateRequest(
+public record UpdateAdminProfileRequest(
         @NotBlank(message = "First name is required")
         String firstName,
 
