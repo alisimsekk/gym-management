@@ -7,14 +7,15 @@ spring:
   application:
     name: gym-management
   datasource:
-    url: jdbc:postgresql://localhost:15432/gym-management
-    username: postgres
-    password: pass
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:15432/gym-management}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:pass}
     hikari:
-      connection-timeout: 2000 # 2 sec
+      connection-timeout: ${SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT:30000}
   jpa:
     hibernate:
       ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
   data:
     mongodb:
