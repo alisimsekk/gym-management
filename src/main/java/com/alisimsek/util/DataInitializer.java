@@ -1,15 +1,14 @@
 package com.alisimsek.util;
 
+import com.alisimsek.dto.request.TrainerWorkloadRequest;
 import com.alisimsek.dto.request.TrainingRequest;
+import com.alisimsek.enums.ActionType;
 import com.alisimsek.enums.UserType;
-import com.alisimsek.model.Admin;
-import com.alisimsek.model.Trainee;
-import com.alisimsek.model.Trainer;
-import com.alisimsek.model.TrainingType;
-import com.alisimsek.repository.AdminRepository;
-import com.alisimsek.repository.TraineeRepository;
-import com.alisimsek.repository.TrainerRepository;
-import com.alisimsek.repository.TrainingTypeRepository;
+import com.alisimsek.exception.customException.EntityNotFoundException;
+import com.alisimsek.messaging.TrainerWorkloadMessageProducer;
+import com.alisimsek.model.*;
+import com.alisimsek.repository.*;
+import com.alisimsek.service.TraineeService;
 import com.alisimsek.service.TrainingService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,6 +21,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -37,6 +37,9 @@ public class DataInitializer {
     private final TraineeRepository traineeRepository;
     private final TrainingService trainingService;
     private final AdminRepository adminRepository;
+    private final TraineeService traineeService;
+    private final TrainerWorkloadMessageProducer trainerWorkloadMessageProducer;
+    private final TrainingRepository trainingRepository;
     private final ObjectMapper objectMapper;
 
     @Value("${initial.data.trainingType.file}")
@@ -100,7 +103,7 @@ public class DataInitializer {
             List<TrainingRequest> trainingDtos = loadDataFromJson(trainingDataPath, new TypeReference<List<TrainingRequest>>() {});
 
 
-            trainingDtos.forEach(trainingService::createTraining);
+            trainingDtos.forEach(this::createTraining);
 
             log.info("Trainings initialized.");
 
@@ -143,4 +146,57 @@ public class DataInitializer {
             Long specializationId,
             UserType userType
     ) {}
+
+    public void createTraining(TrainingRequest createRequest) {
+        log.info("Creating new training");
+
+        Trainer trainer = trainerRepository.findActiveTrainerByUsername(createRequest.trainerUsername())
+                .orElseThrow(() -> new EntityNotFoundException(Trainer.class.getSimpleName()));
+        Trainee trainee = traineeRepository.findActiveTraineeByUsername(createRequest.traineeUsername())
+                .orElseThrow(() -> new EntityNotFoundException(Trainee.class.getSimpleName()));
+
+        TrainingType trainingType = trainingTypeRepository.findById(createRequest.trainingTypeId())
+                .orElseThrow(() -> new EntityNotFoundException(TrainingType.class.getSimpleName()));
+
+
+        Training newTraining = buildTraining(createRequest, trainer, trainee, trainingType);
+
+        traineeService.addTrainerToTrainee(trainee, trainer);
+
+        trainingRepository.save(newTraining);
+
+        log.info("New training created successfully");
+
+        log.info("Sending Workload request for trainer: {}", trainer.getUsername());
+
+        TrainerWorkloadRequest workloadRequest = buildTrainerWorkloadRequest(trainer, createRequest.trainingDate(), createRequest.trainingDuration(), ActionType.ADD);
+
+        trainerWorkloadMessageProducer.publishTrainerWorkload(
+                workloadRequest
+        );
+        log.info("Workload request sent asynchronously.");
+    }
+
+    private Training buildTraining(TrainingRequest request, Trainer trainer, Trainee trainee, TrainingType trainingType) {
+        Training training = new Training();
+        training.setTrainingName(request.trainingName());
+        training.setTrainer(trainer);
+        training.setTrainee(trainee);
+        training.setTrainingType(trainingType);
+        training.setTrainingDate(request.trainingDate());
+        training.setTrainingDuration(request.trainingDuration());
+        return training;
+    }
+
+    private TrainerWorkloadRequest buildTrainerWorkloadRequest(Trainer trainer, LocalDate trainingDate, Integer trainingDuration, ActionType actionType) {
+        return TrainerWorkloadRequest.builder()
+                .trainerUsername(trainer.getUsername())
+                .trainerFirstName(trainer.getFirstName())
+                .trainerLastName(trainer.getLastName())
+                .active(trainer.isActive())
+                .trainingDate(trainingDate)
+                .trainingDuration(trainingDuration)
+                .actionType(actionType)
+                .build();
+    }
 }
