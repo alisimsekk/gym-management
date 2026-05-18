@@ -1,26 +1,26 @@
 [
   {
-    "trainingName": "Morning Cardio",
-    "trainerUsername": "john.smith",
-    "traineeUsername": "sarah.johnson",
+    "trainingName": "Cardio",
+    "trainerUsername": "hasan.kaya",
+    "traineeUsername": "fatma.baran",
     "trainingTypeId": 1,
-    "trainingDateTime": "2026-05-08T09:00:00",
+    "trainingDateTime": "2026-05-28T09:00:00",
     "trainingDuration": 45
   },
   {
     "trainingName": "Strength Basics",
-    "trainerUsername": "emma.wilson",
-    "traineeUsername": "david.miller",
+    "trainerUsername": "can.acar",
+    "traineeUsername": "burak.pazar",
     "trainingTypeId": 2,
-    "trainingDateTime": "2026-05-09T10:00:00",
+    "trainingDateTime": "2026-05-29T10:00:00",
     "trainingDuration": 45
   },
   {
-    "trainingName": "Yoga Flow",
-    "trainerUsername": "michael.brown",
-    "traineeUsername": "lisa.anderson",
+    "trainingName": "Yoga",
+    "trainerUsername": "merve.eren",
+    "traineeUsername": "eda.vardar",
     "trainingTypeId": 3,
-    "trainingDateTime": "2026-05-10T11:00:00",
+    "trainingDateTime": "2026-05-30T11:00:00",
     "trainingDuration": 30
   }
 ]
