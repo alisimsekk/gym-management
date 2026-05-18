@@ -57,10 +57,17 @@ Spor salonu yönetimi için geliştirilmiş REST tabanlı backend uygulamasıdı
 
 ### Antrenman seansları (Training)
 
-- Öğrenci, antrenör, antrenman türü, tarih ve süre bilgisi
-- Aynı antrenör–öğrenci–tür–tarih kombinasyonunun tekrar eklenmesini engelleme
-- Antrenman oluşturulduğunda öğrenciye antrenörün otomatik atanması
-- Rol bazlı yetkilendirme (admin veya ilgili katılımcılar)
+- Öğrenci, antrenör, antrenman adı, antrenman türü, **tarih–saat** (`trainingDateTime`) ve süre (dakika) bilgisi
+- **Zamanlama kuralları** :
+    - Antrenmanlar yalnızca **saat başı** slotlarda planlanır (dakika/saniye `:00`)
+    - İzin verilen saatler: **09:00, 10:00, 11:00, 13:00, 14:00, 15:00, 16:00, 17:00, 18:00**
+    - Süre en fazla **45 dakika** (minimum 1 dakika)
+    - Geçmiş tarih/saat için antrenman oluşturulamaz
+- **Çakışma kontrolü:** Aynı tarih–saat diliminde bir öğrencinin veya bir antrenörün yalnızca **tek** antrenmanı olabilir (karşı taraf veya antrenman türü fark etmez)
+- **Müsait slot sorgusu:** `GET /trainings/available-slots` — seçilen gün için trainer ve trainee’nin dolu randevuları veritabanından alınır, izinli saatler bellek içinde üretilir ve müsaitlik durumu döndürülür (frontend DateTimePicker için)
+- Antrenman oluşturulduğunda veya güncellendiğinde öğrenciye antrenörün **otomatik atanması** (`addTrainerToTrainee`)
+- **Rol bazlı yetkilendirme:** Admin her çift için işlem yapabilir; trainee veya trainer yalnızca kendi dahil olduğu antrenmanları oluşturur/günceller/siler
+- Antrenman oluşturma/silme sonrası antrenör iş yükü mesajı ActiveMQ’ya gönderilir
 
 ### Antrenör iş yükü raporlama
 
@@ -173,12 +180,14 @@ Tüm yollar `/api/v1` altındadır. Korunan endpoint'lerde `Authorization: Beare
 
 | Method | Endpoint | Açıklama |
 |--------|----------|----------|
-| POST | `/trainings` | Antrenman oluştur |
+| POST | `/trainings` | Antrenman oluştur (`trainingDateTime`, `trainingDuration` ≤ 45 dk) |
+| GET | `/trainings/available-slots` | Belirli gün için müsait saat slotlarını getir (`trainerUsername`, `traineeUsername`, `date`; opsiyonel `excludeTrainingId` — düzenleme) |
 | PUT | `/trainings/{id}` | Antrenman güncelle |
 | GET | `/trainings/{id}` | Tek antrenman getir |
 | GET | `/trainings` | Tüm antrenmanları listele (admin) |
 | DELETE | `/trainings/{id}` | Antrenman sil |
-| POST | `/trainings/search` | Filtreli arama |
+| POST | `/trainings/search` | Filtreli arama (trainee/trainer için otomatik kullanıcı filtresi) |
+
 
 ### Raporlar — `/report`
 
@@ -202,17 +211,19 @@ gym-management/
 └── src/main/
     ├── java/com/alisimsek/
     │   ├── config/                 # Swagger, ActiveMQ, uygulama ayarları
+    │   ├── constant/               # TrainingScheduleConstants (izinli saatler, max süre)
     │   ├── controller/             # REST controller'lar
     │   ├── converter/              # Entity ↔ DTO dönüşümleri
     │   ├── dto/                    # Request/Response modelleri
-    │   ├── enums/                  # UserType, ActionType
+    │   ├── enums/                  # UserType, ActionType, SlotUnavailabilityReason
     │   ├── exception/              # GlobalExceptionHandler
     │   ├── messaging/              # JMS producer/consumer
     │   ├── model/                  # JPA ve MongoDB entity'leri
     │   ├── repository/             # Veri erişim katmanı
     │   ├── security/               # JWT, SecurityConfig, CORS
-    │   ├── service/                # İş mantığı
-    │   └── specification/          # JPA Specification (arama)
+    │   ├── service/                # İş mantığı (TrainingSlotAvailabilityService)
+    │   ├── specification/          # JPA Specification (arama)
+    │   └── validation/             # TrainingScheduleValidator
     └── resources/
         ├── application.yaml
         └── *-data.json             # Seed veri dosyaları

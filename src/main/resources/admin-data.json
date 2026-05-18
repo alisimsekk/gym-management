@@ -1,10 +1,19 @@
 [
   {
-    "firstName": "admin",
-    "lastName": "admin",
-    "username": "admin.admin",
-    "email" : "admin@gmail.com",
-    "password": "$2a$12$ggNJqiKjU3GSscN2sU4YcudxJ5vq9Yg.wrVzeScnQC/zeUeBiF.1.",
+    "firstName": "Hazim",
+    "lastName": "İşcan",
+    "username": "hazim.iscan",
+    "email" : "hazim.iscan@gmail.com",
+    "password": "$2a$12$SBsCnXhalujK2YoSMHJQx.Ap9WxspgO.WTPbTr9qsbMXZu6uplQ2u",
+    "active": true,
+    "userType": "ADMIN"
+  },
+  {
+    "firstName": "ali",
+    "lastName": "ali",
+    "username": "ali.ali",
+    "email" : "ali.ali@gmail.com",
+    "password": "$2a$12$SBsCnXhalujK2YoSMHJQx.Ap9WxspgO.WTPbTr9qsbMXZu6uplQ2u",
     "active": true,
     "userType": "ADMIN"
   }
