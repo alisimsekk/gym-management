@@ -3,21 +3,28 @@ package com.alisimsek.controller;
 import com.alisimsek.dto.request.TrainingRequest;
 import com.alisimsek.dto.request.TrainingSearchRequest;
 import com.alisimsek.dto.request.UpdateTrainingRequest;
+import com.alisimsek.dto.response.AvailableTrainingSlotsResponse;
 import com.alisimsek.dto.response.TrainingResponse;
 import com.alisimsek.service.TrainingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
 @RequestMapping("/trainings")
 @RequiredArgsConstructor
+@Validated
 public class TrainingController {
 
     private final TrainingService trainingService;
@@ -35,6 +42,19 @@ public class TrainingController {
     @PutMapping("/{id}")
     public ResponseEntity<TrainingResponse> updateTraining(@PathVariable(value = "id") Long id, @Valid @RequestBody UpdateTrainingRequest updateTrainingRequest) {
         return ResponseEntity.ok().body(trainingService.updateTraining(id, updateTrainingRequest));
+    }
+
+    @Operation(summary = "Get available training time slots for a date")
+    @ApiResponse(responseCode = "200", description = "Available slots retrieved")
+    @GetMapping("/available-slots")
+    public ResponseEntity<AvailableTrainingSlotsResponse> getAvailableTrainingSlots(
+            @RequestParam @NotBlank String trainerUsername,
+            @RequestParam @NotBlank String traineeUsername,
+            @RequestParam @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) Long excludeTrainingId) {
+        return ResponseEntity.ok(
+                trainingService.getAvailableTrainingSlots(
+                        trainerUsername, traineeUsername, date, excludeTrainingId));
     }
 
     @Operation(summary = "Get training by ID")

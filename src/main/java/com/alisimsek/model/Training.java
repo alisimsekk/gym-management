@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -33,8 +33,8 @@ public class Training extends BaseEntity {
     @JoinColumn(name = "training_type_id", nullable = false)
     private TrainingType trainingType;
 
-    @Column(name="training_date", nullable = false)
-    private LocalDate trainingDate;
+    @Column(name = "training_date_time", nullable = false)
+    private LocalDateTime trainingDateTime;
 
     @Column(name="training_duration", nullable = false)
     private Integer trainingDuration; // in minutes
@@ -47,7 +47,7 @@ public class Training extends BaseEntity {
                 ", trainer=" + getTrainer().toString() +
                 ", trainingName='" + trainingName + '\'' +
                 ", trainingType=" + trainingType +
-                ", trainingDate=" + trainingDate +
+                ", trainingDateTime=" + trainingDateTime +
                 ", trainingDuration=" + trainingDuration +
                 '}';
     }

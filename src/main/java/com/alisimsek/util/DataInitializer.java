@@ -169,7 +169,11 @@ public class DataInitializer {
 
         log.info("Sending Workload request for trainer: {}", trainer.getUsername());
 
-        TrainerWorkloadRequest workloadRequest = buildTrainerWorkloadRequest(trainer, createRequest.trainingDate(), createRequest.trainingDuration(), ActionType.ADD);
+        TrainerWorkloadRequest workloadRequest = buildTrainerWorkloadRequest(
+                trainer,
+                createRequest.trainingDateTime().toLocalDate(),
+                createRequest.trainingDuration(),
+                ActionType.ADD);
 
         trainerWorkloadMessageProducer.publishTrainerWorkload(
                 workloadRequest
@@ -183,7 +187,7 @@ public class DataInitializer {
         training.setTrainer(trainer);
         training.setTrainee(trainee);
         training.setTrainingType(trainingType);
-        training.setTrainingDate(request.trainingDate());
+        training.setTrainingDateTime(request.trainingDateTime());
         training.setTrainingDuration(request.trainingDuration());
         return training;
     }

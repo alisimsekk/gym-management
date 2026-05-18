@@ -5,10 +5,10 @@ import com.alisimsek.dto.request.TrainerWorkloadRequest;
 import com.alisimsek.dto.request.TrainingRequest;
 import com.alisimsek.dto.request.TrainingSearchRequest;
 import com.alisimsek.dto.request.UpdateTrainingRequest;
+import com.alisimsek.dto.response.AvailableTrainingSlotsResponse;
 import com.alisimsek.dto.response.TrainingResponse;
 import com.alisimsek.enums.ActionType;
 import com.alisimsek.enums.UserType;
-import com.alisimsek.exception.customException.EntityAlreadyExistsException;
 import com.alisimsek.exception.customException.EntityNotFoundException;
 import com.alisimsek.messaging.TrainerWorkloadMessageProducer;
 import com.alisimsek.model.*;
@@ -16,8 +16,10 @@ import com.alisimsek.repository.TrainingRepository;
 import com.alisimsek.service.TraineeService;
 import com.alisimsek.service.TrainerService;
 import com.alisimsek.service.TrainingService;
+import com.alisimsek.service.TrainingSlotAvailabilityService;
 import com.alisimsek.service.TrainingTypeService;
 import com.alisimsek.specification.TrainingSpecification;
+import com.alisimsek.validation.TrainingScheduleValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -25,9 +27,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -40,6 +42,7 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainingTypeService trainingTypeService;
     private final TrainingConverter trainingConverter;
     private final TrainerWorkloadMessageProducer trainerWorkloadMessageProducer;
+    private final TrainingSlotAvailabilityService trainingSlotAvailabilityService;
 
     @Override
     public void createTraining(TrainingRequest createRequest) {
@@ -52,7 +55,10 @@ public class TrainingServiceImpl implements TrainingService {
 
         TrainingType trainingType = trainingTypeService.getTrainingTypeById(createRequest.trainingTypeId());
 
-        validateTrainingDoesNotExist(trainer, trainee, trainingType, createRequest.trainingDate());
+        LocalDateTime trainingDateTime = createRequest.trainingDateTime();
+        TrainingScheduleValidator.validateTrainingDateTime(trainingDateTime);
+        TrainingScheduleValidator.validateDuration(createRequest.trainingDuration());
+        trainingSlotAvailabilityService.assertSlotAvailable(trainer, trainee, trainingDateTime, null);
 
         Training newTraining = buildTraining(createRequest, trainer, trainee, trainingType);
 
@@ -62,32 +68,22 @@ public class TrainingServiceImpl implements TrainingService {
 
         log.info("New training created successfully");
 
-        log.info("Sending Workload request for trainer: {}", trainer.getUsername());
-
-        TrainerWorkloadRequest workloadRequest = buildTrainerWorkloadRequest(trainer, createRequest.trainingDate(), createRequest.trainingDuration(), ActionType.ADD);
-
-        trainerWorkloadMessageProducer.publishTrainerWorkload(
-                workloadRequest
-        );
-        log.info("Workload request sent asynchronously.");
+        publishWorkload(trainer, trainingDateTime, createRequest.trainingDuration(), ActionType.ADD);
     }
 
-    private void validateTrainingDoesNotExist(Trainer trainer, Trainee trainee, TrainingType type, LocalDate date) {
-        trainingRepository.findByTrainerIdAndTraineeIdAndTrainingTypeIdAndTrainingDate(trainer.getId(), trainee.getId(), type.getId(), date)
-                .ifPresent(existing -> {
-            throw new EntityAlreadyExistsException();
-        });
-    }
+    @Override
+    public AvailableTrainingSlotsResponse getAvailableTrainingSlots(
+            String trainerUsername,
+            String traineeUsername,
+            LocalDate date,
+            Long excludeTrainingId) {
+        Trainer trainer = trainerService.getActiveTrainerByUsername(trainerUsername);
+        Trainee trainee = traineeService.getActiveTraineeByUsername(traineeUsername);
+        isUserAuthorized(trainee, trainer);
 
-    private Training buildTraining(TrainingRequest request, Trainer trainer, Trainee trainee, TrainingType trainingType) {
-        Training training = new Training();
-        training.setTrainingName(request.trainingName());
-        training.setTrainer(trainer);
-        training.setTrainee(trainee);
-        training.setTrainingType(trainingType);
-        training.setTrainingDate(request.trainingDate());
-        training.setTrainingDuration(request.trainingDuration());
-        return training;
+        return new AvailableTrainingSlotsResponse(
+                date,
+                trainingSlotAvailabilityService.computeSlots(trainer, trainee, date, excludeTrainingId));
     }
 
     @Override
@@ -95,15 +91,18 @@ public class TrainingServiceImpl implements TrainingService {
         log.info("Updating training with id: {}", id);
 
         Trainee trainee = traineeService.getActiveTraineeByUsername(updateTrainingRequest.traineeUsername());
-
         Trainer trainer = trainerService.getActiveTrainerByUsername(updateTrainingRequest.trainerUsername());
-        
         TrainingType trainingType = trainingTypeService.getTrainingTypeById(updateTrainingRequest.trainingTypeId());
 
         isUserAuthorized(trainee, trainer);
 
         Training trainingFromStorage = trainingRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(Training.class.getSimpleName()));
+
+        LocalDateTime trainingDateTime = updateTrainingRequest.trainingDateTime();
+        TrainingScheduleValidator.validateTrainingDateTime(trainingDateTime);
+        TrainingScheduleValidator.validateDuration(updateTrainingRequest.trainingDuration());
+        trainingSlotAvailabilityService.assertSlotAvailable(trainer, trainee, trainingDateTime, id);
 
         Trainer oldTrainer = trainingFromStorage.getTrainer();
         removeTrainerIf(trainingFromStorage.getTrainee(), oldTrainer);
@@ -112,17 +111,17 @@ public class TrainingServiceImpl implements TrainingService {
         trainingFromStorage.setTrainer(trainer);
         trainingFromStorage.setTrainingName(updateTrainingRequest.trainingName());
         trainingFromStorage.setTrainingType(trainingType);
-        trainingFromStorage.setTrainingDate(updateTrainingRequest.trainingDate());
+        trainingFromStorage.setTrainingDateTime(trainingDateTime);
         trainingFromStorage.setTrainingDuration(updateTrainingRequest.trainingDuration());
 
         traineeService.addTrainerToTrainee(trainee, trainer);
 
-        return trainingConverter.toTrainingResponse(trainingRepository.save(trainingFromStorage));
+        Training saved = trainingRepository.save(trainingFromStorage);
+        return trainingConverter.toTrainingResponse(saved);
     }
 
     @Override
     public TrainingResponse getTrainingById(Long id) {
-
         log.info("Retrieving training with id: {}", id);
 
         Training trainingFromStorage = trainingRepository.findById(id)
@@ -135,15 +134,12 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     public List<TrainingResponse> getAllTrainings() {
-
         log.info("Retrieving all trainings");
-
         return trainingRepository.findAll().stream().map(trainingConverter::toTrainingResponse).toList();
     }
 
     @Override
     public void deleteTraining(Long id) {
-
         log.info("Deleting training with id: {}", id);
 
         Training training = trainingRepository.findById(id).orElseThrow(
@@ -152,17 +148,13 @@ public class TrainingServiceImpl implements TrainingService {
         isUserAuthorized(training.getTrainee(), training.getTrainer());
 
         Trainer trainer = training.getTrainer();
+        LocalDateTime trainingDateTime = training.getTrainingDateTime();
+        Integer duration = training.getTrainingDuration();
+
         trainingRepository.delete(training);
         log.info("Training with id {} deleted.", id);
 
-        log.info("Sending Workload request for trainer: {}", trainer.getUsername());
-
-        TrainerWorkloadRequest workloadRequest = buildTrainerWorkloadRequest(trainer, training.getTrainingDate(), training.getTrainingDuration(), ActionType.DELETE);
-
-        trainerWorkloadMessageProducer.publishTrainerWorkload(
-                workloadRequest
-        );
-        log.info("Workload request sent asynchronously.");
+        publishWorkload(trainer, trainingDateTime, duration, ActionType.DELETE);
     }
 
     @Override
@@ -170,7 +162,6 @@ public class TrainingServiceImpl implements TrainingService {
         log.info("Retrieving searched trainings");
 
         User authenticatedUser = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
-        assert authenticatedUser != null;
         UserType authenticatedUserUserType = authenticatedUser.getUserType();
 
         if (UserType.TRAINEE.equals(authenticatedUserUserType)) {
@@ -182,6 +173,33 @@ public class TrainingServiceImpl implements TrainingService {
         List<Training> trainings = trainingRepository.findAll(TrainingSpecification.search(trainingSearchRequest));
 
         return trainings.stream().map(trainingConverter::toTrainingResponse).toList();
+    }
+
+    private Training buildTraining(
+            TrainingRequest request,
+            Trainer trainer,
+            Trainee trainee,
+            TrainingType trainingType) {
+        Training training = new Training();
+        training.setTrainingName(request.trainingName());
+        training.setTrainer(trainer);
+        training.setTrainee(trainee);
+        training.setTrainingType(trainingType);
+        training.setTrainingDateTime(request.trainingDateTime());
+        training.setTrainingDuration(request.trainingDuration());
+        return training;
+    }
+
+    private void publishWorkload(
+            Trainer trainer,
+            LocalDateTime trainingDateTime,
+            Integer trainingDuration,
+            ActionType actionType) {
+        log.info("Sending Workload request for trainer: {}", trainer.getUsername());
+        TrainerWorkloadRequest workloadRequest = buildTrainerWorkloadRequest(
+                trainer, trainingDateTime.toLocalDate(), trainingDuration, actionType);
+        trainerWorkloadMessageProducer.publishTrainerWorkload(workloadRequest);
+        log.info("Workload request sent asynchronously.");
     }
 
     private void removeTrainerIf(Trainee trainee, Trainer oldTrainer) {
@@ -200,7 +218,11 @@ public class TrainingServiceImpl implements TrainingService {
         return false;
     }
 
-    private TrainerWorkloadRequest buildTrainerWorkloadRequest(Trainer trainer, LocalDate trainingDate, Integer trainingDuration, ActionType actionType) {
+    private TrainerWorkloadRequest buildTrainerWorkloadRequest(
+            Trainer trainer,
+            LocalDate trainingDate,
+            Integer trainingDuration,
+            ActionType actionType) {
         return TrainerWorkloadRequest.builder()
                 .trainerUsername(trainer.getUsername())
                 .trainerFirstName(trainer.getFirstName())

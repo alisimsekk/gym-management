@@ -16,7 +16,7 @@ public class TrainingConverterImpl implements TrainingConverter {
                 .traineeName(training.getTrainee().getFirstName().concat(" ").concat(training.getTrainee().getLastName()))
                 .traineeUsername(training.getTrainee().getUsername())
                 .trainingName(training.getTrainingName())
-                .trainingDate(training.getTrainingDate())
+                .trainingDateTime(training.getTrainingDateTime())
                 .trainingType(training.getTrainingType().getTrainingTypeName())
                 .duration(training.getTrainingDuration())
                 .build();

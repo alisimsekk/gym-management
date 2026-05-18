@@ -41,11 +41,15 @@ public class TrainingSpecification {
             }
 
             if (searchRequest.getPeriodFrom() != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get(TRAINING_DATE), searchRequest.getPeriodFrom()));
+                predicates.add(cb.greaterThanOrEqualTo(
+                        root.get(TRAINING_DATE_TIME),
+                        searchRequest.getPeriodFrom().atStartOfDay()));
             }
 
             if (searchRequest.getPeriodTo() != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get(TRAINING_DATE), searchRequest.getPeriodTo()));
+                predicates.add(cb.lessThanOrEqualTo(
+                        root.get(TRAINING_DATE_TIME),
+                        searchRequest.getPeriodTo().atTime(23, 59, 59)));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

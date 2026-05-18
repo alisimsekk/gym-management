@@ -13,7 +13,7 @@ public class AppConstants {
     public static final String USERNAME = "username";
     public static final String TRAINEE = "trainee";
     public static final String TRAINER = "trainer";
-    public static final String TRAINING_DATE = "trainingDate";
+    public static final String TRAINING_DATE_TIME = "trainingDateTime";
     public static final String TRAINING_TYPE = "trainingType";
 
     public static final String BARER_WITH_BLANK = "Bearer ";

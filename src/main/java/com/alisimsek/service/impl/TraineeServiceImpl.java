@@ -227,7 +227,7 @@ public class TraineeServiceImpl implements TraineeService {
                     .trainerFirstName(trainer.getFirstName())
                     .trainerLastName(trainer.getLastName())
                     .active(trainer.isActive())
-                    .trainingDate(training.getTrainingDate())
+                    .trainingDate(training.getTrainingDateTime().toLocalDate())
                     .trainingDuration(training.getTrainingDuration())
                     .actionType(actionType)
                     .build();
