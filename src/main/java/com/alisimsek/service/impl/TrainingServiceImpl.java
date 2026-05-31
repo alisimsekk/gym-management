@@ -77,6 +77,9 @@ public class TrainingServiceImpl implements TrainingService {
             String traineeUsername,
             LocalDate date,
             Long excludeTrainingId) {
+
+        log.info("Retrieving available training slots for trainer: {}, trainee: {}, date: {}", trainerUsername, traineeUsername, date );
+
         Trainer trainer = trainerService.getActiveTrainerByUsername(trainerUsername);
         Trainee trainee = traineeService.getActiveTraineeByUsername(traineeUsername);
         isUserAuthorized(trainee, trainer);

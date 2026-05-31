@@ -1,6 +1,7 @@
 package com.alisimsek.security;
 
 import com.alisimsek.enums.UserType;
+import com.alisimsek.filter.RequestAccessLogFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -37,6 +38,7 @@ public class SecurityConfig {
     private final CorsProperties corsProperties;
 
     private final JwtFilter jwtFilter;
+    private final RequestAccessLogFilter requestAccessLogFilter;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final LogoutHandler jwtLogoutHandler;
 
@@ -54,6 +56,7 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(customAuthenticationEntryPoint))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(requestAccessLogFilter, JwtFilter.class)
                 .logout(lo -> lo
                         .logoutUrl("/auth/logout")
                         .addLogoutHandler(jwtLogoutHandler)
